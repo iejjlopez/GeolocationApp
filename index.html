@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Obtener Posición de Dispositivos</title>
+</head>
+<body>
+    <h1>Obtener Posición de Dispositivos</h1>
+    <button onclick="getLocation()">Obtener mi ubicación</button>
+    <p id="status"></p>
+    <p id="location"></p>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('status').innerHTML = "Obteniendo ubicación...";
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById('status').innerHTML = "Geolocalización no es soportada por este navegador.";
+            }
+        }
+
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            document.getElementById('status').innerHTML = "Ubicación obtenida";
+            document.getElementById('location').innerHTML = "Latitud: " + lat + "<br>Longitud: " + lon;
+
+            // Enviar las coordenadas al servidor
+            fetch('http://127.0.0.1:5000/save-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ lat: lat, lon: lon })
+            }).then(response => response.json()).then(data => {
+                console.log(data);
+            });
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('status').innerHTML = "El usuario denegó la solicitud de geolocalización.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('status').innerHTML = "La información de ubicación no está disponible.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('status').innerHTML = "La solicitud para obtener la ubicación ha caducado.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('status').innerHTML = "Se ha producido un error desconocido.";
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
